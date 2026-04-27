@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard GSC — Ethni Beauty Market</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap');
+
+  :root {
+    --bg: #0a0c10;
+    --surface: #12151c;
+    --surface2: #1a1e29;
+    --border: #252935;
+    --accent: #c8f54a;
+    --accent2: #7b61ff;
+    --accent3: #ff6b6b;
+    --accent4: #38d9a9;
+    --text: #e8ecf4;
+    --text-muted: #6b7280;
+    --text-dim: #9ca3af;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* NOISE TEXTURE */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container { max-width: 1400px; margin: 0 auto; padding: 0 2rem; position: relative; z-index: 1; }
+
+  /* HEADER */
+  header {
+    padding: 2rem 0 1.5rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 2.5rem;
+  }
+
+  .header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .logo-area {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .logo-dot {
+    width: 36px; height: 36px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .logo-dot svg { width: 20px; height: 20px; }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.4rem;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+
+  h1 span {
+    color: var(--accent);
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: block;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-top: -2px;
+  }
+
+  .header-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .date-badge {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+  }
+
+  .status-dot {
+    width: 8px; height: 8px;
+    background: var(--accent4);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+    display: inline-block;
+    margin-right: 6px;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(0.85); }
+  }
+
+  /* UPLOAD SECTION */
+  .upload-section {
+    background: var(--surface);
+    border: 1.5px dashed var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2.5rem;
+    text-align: center;
+    transition: border-color 0.3s;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .upload-section:hover {
+    border-color: var(--accent);
+    background: rgba(200, 245, 74, 0.03);
+  }
+
+  .upload-section.drag-over {
+    border-color: var(--accent);
+    background: rgba(200, 245, 74, 0.06);
+  }
+
+  .upload-icon {
+    width: 48px; height: 48px;
+    margin: 0 auto 1rem;
+    background: var(--surface2);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--accent);
+  }
+
+  .upload-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .upload-sub {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+  }
+
+  .upload-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--accent);
+    color: #0a0c10;
+    padding: 0.65rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    border: none;
+    transition: opacity 0.2s;
+    font-family: 'Syne', sans-serif;
+  }
+
+  .upload-btn:hover { opacity: 0.85; }
+
+  #fileInput { display: none; }
+
+  /* INSTRUCTIONS ACCORDEON */
+  .instructions-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-size: 0.82rem;
+    color: var(--accent2);
+    margin-top: 0.8rem;
+    justify-content: center;
+    user-select: none;
+  }
+
+  .instructions-toggle:hover { text-decoration: underline; }
+  .instructions-content { display: none; margin-top: 1rem; text-align: left; }
+  .instructions-content.open { display: block; }
+
+  .instruction-steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+  }
+
+  .step {
+    background: var(--surface2);
+    border-radius: 10px;
+    padding: 0.8rem 1rem;
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+  }
+
+  .step strong { color: var(--accent); display: block; margin-bottom: 4px; font-size: 0.75rem; text-transform: uppercase; }
+
+  /* KPI GRID */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  @media (max-width: 900px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 500px) { .kpi-grid { grid-template-columns: 1fr; } }
+
+  .kpi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.4rem 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s, transform 0.2s;
+  }
+
+  .kpi-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--card-accent, var(--accent));
+    border-radius: 14px 14px 0 0;
+  }
+
+  .kpi-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: 0.6rem;
+    font-weight: 500;
+  }
+
+  .kpi-value {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 2rem;
+    letter-spacing: -0.03em;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 0.4rem;
+  }
+
+  .kpi-sub {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  .kpi-trend {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-top: 0.4rem;
+  }
+
+  .trend-up { background: rgba(56, 217, 169, 0.15); color: var(--accent4); }
+  .trend-down { background: rgba(255, 107, 107, 0.15); color: var(--accent3); }
+
+  /* SECTION TITLES */
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--text);
+  }
+
+  .section-badge {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 6px;
+  }
+
+  /* CHARTS GRID */
+  .charts-row {
+    display: grid;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .charts-row.cols-2 { grid-template-columns: 1fr 1fr; }
+  .charts-row.cols-3 { grid-template-columns: 2fr 1fr 1fr; }
+
+  @media (max-width: 900px) {
+    .charts-row.cols-2, .charts-row.cols-3 { grid-template-columns: 1fr; }
+  }
+
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.5rem;
+  }
+
+  .chart-card canvas { max-height: 280px; }
+
+  /* TAB NAV */
+  .tab-nav {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.2rem;
+    flex-wrap: wrap;
+  }
+
+  .tab-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 0.45rem 1rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .tab-btn.active {
+    background: var(--accent);
+    color: #0a0c10;
+    border-color: var(--accent);
+    font-weight: 700;
+  }
+
+  .tab-btn:hover:not(.active) { border-color: var(--accent); color: var(--text); }
+
+  /* TABLE */
+  .table-wrap {
+    overflow-x: auto;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+  }
+
+  thead tr {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    padding: 0.7rem 1rem;
+    text-align: left;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+  }
+
+  th:hover { color: var(--accent); }
+
+  td {
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid rgba(37, 41, 53, 0.6);
+    color: var(--text-dim);
+    vertical-align: middle;
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  tbody tr:hover td {
+    background: rgba(200, 245, 74, 0.025);
+    color: var(--text);
+  }
+
+  .rank-num {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+
+  .bar-cell { display: flex; align-items: center; gap: 0.6rem; }
+  .mini-bar {
+    height: 4px;
+    background: var(--accent);
+    border-radius: 2px;
+    min-width: 2px;
+    transition: width 0.6s ease;
+    flex-shrink: 0;
+  }
+
+  .ctr-pill {
+    display: inline-block;
+    padding: 1px 7px;
+    border-radius: 4px;
+    font-size: 0.77rem;
+    font-weight: 600;
+  }
+
+  .ctr-high { background: rgba(56, 217, 169, 0.15); color: var(--accent4); }
+  .ctr-mid { background: rgba(200, 245, 74, 0.12); color: var(--accent); }
+  .ctr-low { background: rgba(107, 114, 128, 0.15); color: var(--text-muted); }
+
+  .pos-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px; height: 20px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  .pos-1 { background: rgba(200, 245, 74, 0.2); color: var(--accent); }
+  .pos-top3 { background: rgba(56, 217, 169, 0.15); color: var(--accent4); }
+  .pos-top10 { background: rgba(123, 97, 255, 0.15); color: var(--accent2); }
+  .pos-low { background: rgba(107, 114, 128, 0.1); color: var(--text-muted); }
+
+  /* DONUT LEGEND */
+  .donut-layout { display: flex; align-items: center; gap: 1.5rem; }
+  .donut-legend { flex: 1; }
+  .legend-item { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.6rem; font-size: 0.82rem; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .legend-label { color: var(--text-dim); flex: 1; }
+  .legend-val { font-weight: 600; color: var(--text); font-family: 'Syne', sans-serif; }
+
+  /* TIMELINE PICKER */
+  .timeline-picker {
+    display: flex;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .period-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 0.3rem 0.7rem;
+    border-radius: 5px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .period-btn.active {
+    background: var(--surface2);
+    border-color: var(--accent2);
+    color: var(--accent2);
+  }
+
+  .period-btn:hover:not(.active) { border-color: var(--text-muted); color: var(--text); }
+
+  /* SEARCH */
+  .search-input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.5rem 1rem 0.5rem 2.5rem;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    outline: none;
+    width: 240px;
+    transition: border-color 0.2s;
+    position: relative;
+  }
+
+  .search-input:focus { border-color: var(--accent); }
+  .search-input::placeholder { color: var(--text-muted); }
+
+  .search-wrap { position: relative; }
+  .search-icon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+
+  .table-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.8rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  /* FOOTER */
+  footer {
+    margin-top: 3rem;
+    padding: 1.5rem 0;
+    border-top: 1px solid var(--border);
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  /* MINI SPARKLINE TABLE */
+  .sparkline-wrap { display: flex; align-items: center; gap: 4px; }
+  .sparkline-bar { width: 4px; border-radius: 2px; background: var(--accent); min-height: 4px; }
+
+  /* LOADING STATE */
+  .loading { display: flex; align-items: center; justify-content: center; padding: 4rem; gap: 0.75rem; color: var(--text-muted); font-size: 0.85rem; }
+  .spinner { width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* EMPTY STATE */
+  .empty { text-align: center; padding: 3rem 2rem; color: var(--text-muted); font-size: 0.85rem; }
+  .empty-icon { font-size: 2.5rem; margin-bottom: 1rem; opacity: 0.4; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- HEADER -->
+  <header>
+    <div class="header-inner">
+      <div class="logo-area">
+        <div class="logo-dot">
+          <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10 2L18 7V13L10 18L2 13V7L10 2Z" fill="#0a0c10" stroke="#0a0c10" stroke-width="0.5"/>
+            <circle cx="10" cy="10" r="3" fill="currentColor"/>
+          </svg>
+        </div>
+        <h1>
+          GSC Dashboard
+          <span>Google Search Console</span>
+        </h1>
+      </div>
+      <div class="header-meta">
+        <div class="date-badge">
+          <span class="status-dot"></span>
+          <span id="dataDateLabel">Aucune donnée chargée</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- UPLOAD SECTION -->
+  <div class="upload-section" id="uploadZone">
+    <div class="upload-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+    </div>
+    <div class="upload-title">Importer votre export Google Search Console</div>
+    <div class="upload-sub">Glissez-déposez votre fichier .xlsx ou cliquez pour sélectionner</div>
+    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+      Choisir un fichier XLSX
+    </button>
+    <input type="file" id="fileInput" accept=".xlsx,.xls">
+    <div class="instructions-toggle" onclick="toggleInstructions()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      Comment exporter depuis Google Search Console ?
+    </div>
+    <div class="instructions-content" id="instructionsContent">
+      <div class="instruction-steps">
+        <div class="step"><strong>1. Accéder à GSC</strong>Aller sur search.google.com/search-console</div>
+        <div class="step"><strong>2. Performances</strong>Cliquer sur "Performances" > "Résultats de recherche"</div>
+        <div class="step"><strong>3. Période</strong>Sélectionner les 12 derniers mois ou la période souhaitée</div>
+        <div class="step"><strong>4. Exporter</strong>Cliquer sur "Exporter" > "Télécharger au format Excel (.xlsx)"</div>
+        <div class="step"><strong>5. Importer ici</strong>Glisser-déposer ou sélectionner le fichier téléchargé ci-dessus</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD CONTENT (hidden until data loaded) -->
+  <div id="dashboardContent" style="display:none">
+
+    <!-- KPI CARDS -->
+    <div class="kpi-grid" id="kpiGrid"></div>
+
+    <!-- MAIN CHART: Evolution temporelle -->
+    <div class="chart-card" style="margin-bottom:1.5rem">
+      <div class="section-header">
+        <div class="section-title">Évolution dans le temps</div>
+        <span class="section-badge" id="timelineBadge">—</span>
+      </div>
+      <div class="timeline-picker" id="timelinePicker">
+        <button class="period-btn active" data-days="30" onclick="setTimelinePeriod(30,this)">30 jours</button>
+        <button class="period-btn" data-days="90" onclick="setTimelinePeriod(90,this)">90 jours</button>
+        <button class="period-btn" data-days="180" onclick="setTimelinePeriod(180,this)">6 mois</button>
+        <button class="period-btn" data-days="999" onclick="setTimelinePeriod(999,this)">Tout</button>
+      </div>
+      <div class="tab-nav" id="metricTabs">
+        <button class="tab-btn active" onclick="setChartMetric('clics',this)">Clics</button>
+        <button class="tab-btn" onclick="setChartMetric('impressions',this)">Impressions</button>
+        <button class="tab-btn" onclick="setChartMetric('ctr',this)">CTR</button>
+        <button class="tab-btn" onclick="setChartMetric('position',this)">Position moy.</button>
+      </div>
+      <canvas id="mainChart"></canvas>
+    </div>
+
+    <!-- ROW: Appareils + Pays top -->
+    <div class="charts-row cols-2" style="margin-bottom:1.5rem">
+      <!-- Appareils -->
+      <div class="chart-card">
+        <div class="section-header">
+          <div class="section-title">Répartition par appareil</div>
+        </div>
+        <div class="donut-layout">
+          <div style="width:140px;height:140px;flex-shrink:0">
+            <canvas id="devicesChart"></canvas>
+          </div>
+          <div class="donut-legend" id="devicesLegend"></div>
+        </div>
+      </div>
+      <!-- Pays top -->
+      <div class="chart-card">
+        <div class="section-header">
+          <div class="section-title">Top 8 pays par clics</div>
+        </div>
+        <canvas id="countriesChart" style="max-height:200px"></canvas>
+      </div>
+    </div>
+
+    <!-- TABLE SECTION: Requêtes / Pages -->
+    <div class="chart-card" style="margin-bottom:1.5rem">
+      <div class="table-controls">
+        <div>
+          <div class="tab-nav" style="margin:0">
+            <button class="tab-btn active" onclick="setTable('queries',this)">Requêtes</button>
+            <button class="tab-btn" onclick="setTable('pages',this)">Pages</button>
+            <button class="tab-btn" onclick="setTable('countries',this)">Pays</button>
+          </div>
+        </div>
+        <div class="search-wrap">
+          <span class="search-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+            </svg>
+          </span>
+          <input class="search-input" id="tableSearch" type="text" placeholder="Rechercher..." oninput="filterTable()">
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table id="dataTable">
+          <thead id="tableHead"></thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Apparence dans les résultats -->
+    <div class="chart-card" style="margin-bottom:1.5rem">
+      <div class="section-header">
+        <div class="section-title">Apparence dans les résultats</div>
+      </div>
+      <canvas id="searchAppearanceChart" style="max-height:220px"></canvas>
+    </div>
+
+  </div><!-- end dashboardContent -->
+
+  <footer>
+    Dashboard Google Search Console — Ethni Beauty Market &nbsp;·&nbsp; Données exportées depuis GSC &nbsp;·&nbsp; Glissez un nouveau fichier pour actualiser
+  </footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let DATA = {
+  graphique: [],
+  requetes: [],
+  pages: [],
+  pays: [],
+  appareils: [],
+  apparence: []
+};
+
+let currentMetric = 'clics';
+let currentDays = 30;
+let currentTable = 'queries';
+let tableData = [];
+let sortCol = null;
+let sortDir = 1;
+let charts = {};
+
+// ─── COLORS ──────────────────────────────────────────────────────────────────
+const COLORS = ['#c8f54a', '#7b61ff', '#38d9a9', '#ff6b6b', '#ffd166', '#06d6a0', '#ef476f', '#118ab2'];
+
+// ─── UPLOAD ───────────────────────────────────────────────────────────────────
+const zone = document.getElementById('uploadZone');
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('drag-over'); handleFile(e.dataTransfer.files[0]); });
+document.getElementById('fileInput').addEventListener('change', e => handleFile(e.target.files[0]));
+
+function toggleInstructions() {
+  const el = document.getElementById('instructionsContent');
+  el.classList.toggle('open');
+}
+
+function handleFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb = XLSX.read(e.target.result, { type: 'array', cellDates: true });
+      parseWorkbook(wb);
+      document.getElementById('dataDateLabel').textContent = file.name + ' · ' + new Date().toLocaleDateString('fr-FR');
+      document.getElementById('dashboardContent').style.display = 'block';
+      renderAll();
+    } catch(err) {
+      alert('Erreur lors de la lecture du fichier. Assurez-vous qu\'il s\'agit d\'un export GSC valide.');
+      console.error(err);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function parseWorkbook(wb) {
+  // Detect sheet names (may vary by language/version)
+  const names = wb.SheetNames.map(n => n.toLowerCase());
+
+  const findSheet = (...keywords) => {
+    for (let kw of keywords) {
+      const idx = names.findIndex(n => n.includes(kw));
+      if (idx >= 0) return XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[idx]], { defval: 0 });
+    }
+    return [];
+  };
+
+  const raw_graphique = findSheet('graphique', 'graph', 'date', 'overview');
+  const raw_requetes = findSheet('requête', 'requte', 'query', 'queries', 'keyword');
+  const raw_pages = findSheet('page', 'url', 'landing');
+  const raw_pays = findSheet('pay', 'country', 'countri', 'région', 'region', 'geo');
+  const raw_appareils = findSheet('appareil', 'device', 'apparell');
+  const raw_apparence = findSheet('apparence', 'appear', 'search type', 'type de résultat');
+
+  // Normalize keys
+  const normalizeKey = k => k.toLowerCase()
+    .replace(/[^a-z0-9 ]/g, '')
+    .replace(/\s+/g, '_')
+    .trim();
+
+  const normRow = row => {
+    const out = {};
+    for (const [k, v] of Object.entries(row)) out[normalizeKey(k)] = v;
+    return out;
+  };
+
+  // Helpers to find column by partial name
+  const findCol = (row, ...keywords) => {
+    const keys = Object.keys(row);
+    for (const kw of keywords) {
+      const k = keys.find(k => k.includes(kw));
+      if (k) return k;
+    }
+    return null;
+  };
+
+  // GRAPHIQUE
+  DATA.graphique = raw_graphique.map(row => {
+    const r = normRow(row);
+    const dateKey = findCol(r, 'date', 'jour', 'day') || Object.keys(r)[0];
+    const clicsKey = findCol(r, 'clic', 'click') || Object.keys(r)[1];
+    const impKey = findCol(r, 'impression') || Object.keys(r)[2];
+    const ctrKey = findCol(r, 'ctr') || Object.keys(r)[3];
+    const posKey = findCol(r, 'position', 'pos') || Object.keys(r)[4];
+    let d = r[dateKey];
+    if (d instanceof Date) d = d.toISOString().slice(0,10);
+    else if (typeof d === 'number') d = XLSX.SSF.format('yyyy-mm-dd', d);
+    return {
+      date: String(d),
+      clics: parseFloat(r[clicsKey]) || 0,
+      impressions: parseFloat(r[impKey]) || 0,
+      ctr: parseFloat(r[ctrKey]) || 0,
+      position: parseFloat(r[posKey]) || 0
+    };
+  }).filter(r => r.date && r.date.match(/\d{4}/));
+
+  DATA.graphique.sort((a,b) => a.date.localeCompare(b.date));
+
+  const parseTable = (raw, labelField) => raw.map(row => {
+    const r = normRow(row);
+    const lk = labelField || findCol(r, 'requ', 'page', 'pay', 'appar', 'device', 'url', 'query') || Object.keys(r)[0];
+    const ck = findCol(r, 'clic', 'click') || Object.keys(r)[1];
+    const ik = findCol(r, 'impression') || Object.keys(r)[2];
+    const tk = findCol(r, 'ctr') || Object.keys(r)[3];
+    const pk = findCol(r, 'position', 'pos') || Object.keys(r)[4];
+    return {
+      label: String(r[lk] || '').trim(),
+      clics: parseFloat(r[ck]) || 0,
+      impressions: parseFloat(r[ik]) || 0,
+      ctr: parseFloat(r[tk]) || 0,
+      position: parseFloat(r[pk]) || 0
+    };
+  }).filter(r => r.label && r.label !== '0');
+
+  DATA.requetes = parseTable(raw_requetes).sort((a,b) => b.clics - a.clics);
+  DATA.pages = parseTable(raw_pages).sort((a,b) => b.clics - a.clics);
+  DATA.pays = parseTable(raw_pays).sort((a,b) => b.clics - a.clics);
+  DATA.appareils = parseTable(raw_appareils).sort((a,b) => b.clics - a.clics);
+  DATA.apparence = parseTable(raw_apparence).sort((a,b) => b.clics - a.clics);
+}
+
+// ─── RENDER ALL ───────────────────────────────────────────────────────────────
+function renderAll() {
+  renderKPIs();
+  renderMainChart();
+  renderDevicesChart();
+  renderCountriesChart();
+  renderSearchAppearance();
+  setTable(currentTable);
+}
+
+// ─── KPIs ─────────────────────────────────────────────────────────────────────
+function renderKPIs() {
+  const g = DATA.graphique;
+  if (!g.length) return;
+
+  const total_clics = g.reduce((s,r) => s+r.clics, 0);
+  const total_impressions = g.reduce((s,r) => s+r.impressions, 0);
+  const avg_ctr = total_impressions > 0 ? (total_clics / total_impressions) * 100 : 0;
+  const avg_pos = g.reduce((s,r) => s+r.position, 0) / g.length;
+
+  // Period comparison (last half vs first half)
+  const half = Math.floor(g.length / 2);
+  const firstHalf = g.slice(0, half);
+  const secondHalf = g.slice(half);
+  const trend_clics = calcTrend(
+    firstHalf.reduce((s,r)=>s+r.clics,0),
+    secondHalf.reduce((s,r)=>s+r.clics,0)
+  );
+  const trend_imp = calcTrend(
+    firstHalf.reduce((s,r)=>s+r.impressions,0),
+    secondHalf.reduce((s,r)=>s+r.impressions,0)
+  );
+
+  const kpis = [
+    { label: 'Total Clics', value: fmtNum(total_clics), sub: 'Sur la période', trend: trend_clics, color: '#c8f54a' },
+    { label: 'Impressions', value: fmtNum(total_impressions), sub: 'Sur la période', trend: trend_imp, color: '#7b61ff' },
+    { label: 'CTR moyen', value: avg_ctr.toFixed(2) + '%', sub: 'Taux de clics', trend: null, color: '#38d9a9' },
+    { label: 'Position moy.', value: avg_pos.toFixed(1), sub: 'Meilleure = plus bas', trend: null, color: '#ffd166' },
+  ];
+
+  document.getElementById('kpiGrid').innerHTML = kpis.map(k => `
+    <div class="kpi-card" style="--card-accent:${k.color}">
+      <div class="kpi-label">${k.label}</div>
+      <div class="kpi-value">${k.value}</div>
+      ${k.trend !== null ? `
+        <div class="kpi-trend ${k.trend >= 0 ? 'trend-up' : 'trend-down'}">
+          ${k.trend >= 0 ? '↑' : '↓'} ${Math.abs(k.trend).toFixed(1)}% vs période préc.
+        </div>
+      ` : `<div class="kpi-sub">${k.sub}</div>`}
+    </div>
+  `).join('');
+}
+
+function calcTrend(old, newv) { return old > 0 ? ((newv - old) / old) * 100 : 0; }
+
+// ─── MAIN CHART ───────────────────────────────────────────────────────────────
+function getFilteredData() {
+  const g = DATA.graphique;
+  if (currentDays >= 999) return g;
+  return g.slice(-currentDays);
+}
+
+function setTimelinePeriod(days, btn) {
+  currentDays = days;
+  document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderMainChart();
+}
+
+function setChartMetric(metric, btn) {
+  currentMetric = metric;
+  document.querySelectorAll('#metricTabs .tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderMainChart();
+}
+
+function renderMainChart() {
+  const filtered = getFilteredData();
+  const labels = filtered.map(r => r.date);
+  const values = filtered.map(r => currentMetric === 'ctr' ? (r[currentMetric]*100) : r[currentMetric]);
+
+  document.getElementById('timelineBadge').textContent = filtered.length + ' jours';
+
+  const metricLabels = { clics: 'Clics', impressions: 'Impressions', ctr: 'CTR (%)', position: 'Position moy.' };
+  const metricColors = { clics: '#c8f54a', impressions: '#7b61ff', ctr: '#38d9a9', position: '#ffd166' };
+  const color = metricColors[currentMetric];
+
+  if (charts.main) charts.main.destroy();
+
+  const ctx = document.getElementById('mainChart').getContext('2d');
+  const grad = ctx.createLinearGradient(0, 0, 0, 260);
+  grad.addColorStop(0, color + '25');
+  grad.addColorStop(1, color + '00');
+
+  charts.main = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: metricLabels[currentMetric],
+        data: values,
+        borderColor: color,
+        backgroundColor: grad,
+        borderWidth: 2,
+        fill: true,
+        tension: 0.4,
+        pointRadius: filtered.length > 60 ? 0 : 3,
+        pointHoverRadius: 5,
+        pointBackgroundColor: color,
+      }]
+    },
+    options: {
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1a1e29',
+          borderColor: '#252935',
+          borderWidth: 1,
+          titleColor: '#e8ecf4',
+          bodyColor: '#9ca3af',
+          callbacks: {
+            label: ctx => {
+              const v = ctx.parsed.y;
+              if (currentMetric === 'ctr') return `CTR : ${v.toFixed(2)}%`;
+              if (currentMetric === 'position') return `Position : ${v.toFixed(1)}`;
+              return metricLabels[currentMetric] + ' : ' + fmtNum(Math.round(v));
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          ticks: { color: '#6b7280', maxTicksLimit: 10, font: { size: 10 } }
+        },
+        y: {
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          ticks: {
+            color: '#6b7280',
+            font: { size: 10 },
+            callback: v => currentMetric === 'ctr' ? v.toFixed(1)+'%' : currentMetric === 'position' ? v.toFixed(0) : fmtNum(v)
+          },
+          reverse: currentMetric === 'position'
+        }
+      }
+    }
+  });
+}
+
+// ─── DEVICES ──────────────────────────────────────────────────────────────────
+function renderDevicesChart() {
+  const dev = DATA.appareils;
+  if (!dev.length) return;
+
+  const labels = dev.map(d => d.label);
+  const values = dev.map(d => d.clics);
+  const total = values.reduce((a,b) => a+b, 0);
+
+  if (charts.devices) charts.devices.destroy();
+
+  charts.devices = new Chart(document.getElementById('devicesChart'), {
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [{ data: values, backgroundColor: COLORS.slice(0,labels.length), borderWidth: 0 }]
+    },
+    options: {
+      cutout: '70%',
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `${ctx.label}: ${fmtNum(ctx.parsed)} clics` } } }
+    }
+  });
+
+  document.getElementById('devicesLegend').innerHTML = dev.map((d, i) => `
+    <div class="legend-item">
+      <div class="legend-dot" style="background:${COLORS[i]}"></div>
+      <div class="legend-label">${d.label}</div>
+      <div class="legend-val">${((d.clics/total)*100).toFixed(0)}%</div>
+    </div>
+  `).join('');
+}
+
+// ─── COUNTRIES ────────────────────────────────────────────────────────────────
+function renderCountriesChart() {
+  const top = DATA.pays.slice(0, 8);
+  if (!top.length) return;
+
+  if (charts.countries) charts.countries.destroy();
+
+  charts.countries = new Chart(document.getElementById('countriesChart'), {
+    type: 'bar',
+    data: {
+      labels: top.map(d => d.label),
+      datasets: [{
+        data: top.map(d => d.clics),
+        backgroundColor: top.map((_,i) => COLORS[i % COLORS.length] + 'cc'),
+        borderColor: top.map((_,i) => COLORS[i % COLORS.length]),
+        borderWidth: 1,
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `${fmtNum(ctx.parsed.x)} clics` } } },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#6b7280', font: { size: 10 } } },
+        y: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 10 } } }
+      }
+    }
+  });
+}
+
+// ─── SEARCH APPEARANCE ────────────────────────────────────────────────────────
+function renderSearchAppearance() {
+  const ap = DATA.apparence;
+  if (!ap.length) return;
+
+  if (charts.appearance) charts.appearance.destroy();
+
+  charts.appearance = new Chart(document.getElementById('searchAppearanceChart'), {
+    type: 'bar',
+    data: {
+      labels: ap.map(d => d.label),
+      datasets: [
+        {
+          label: 'Clics',
+          data: ap.map(d => d.clics),
+          backgroundColor: '#c8f54a88',
+          borderColor: '#c8f54a',
+          borderWidth: 1,
+          borderRadius: 4,
+          yAxisID: 'y'
+        },
+        {
+          label: 'Impressions',
+          data: ap.map(d => d.impressions),
+          backgroundColor: '#7b61ff44',
+          borderColor: '#7b61ff',
+          borderWidth: 1,
+          borderRadius: 4,
+          yAxisID: 'y1'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { labels: { color: '#9ca3af', font: { size: 11 }, boxWidth: 12 } }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 11 } } },
+        y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#6b7280', font: { size: 10 }, callback: v => fmtNum(v) }, title: { display: true, text: 'Clics', color: '#c8f54a', font: { size: 10 } } },
+        y1: { position: 'right', grid: { display: false }, ticks: { color: '#6b7280', font: { size: 10 }, callback: v => fmtNum(v) }, title: { display: true, text: 'Impressions', color: '#7b61ff', font: { size: 10 } } }
+      }
+    }
+  });
+}
+
+// ─── TABLES ───────────────────────────────────────────────────────────────────
+function setTable(type, btn) {
+  currentTable = type;
+  if (btn) {
+    document.querySelectorAll('.chart-card .tab-nav .tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  document.getElementById('tableSearch').value = '';
+
+  let src = [];
+  if (type === 'queries') src = DATA.requetes;
+  else if (type === 'pages') src = DATA.pages;
+  else if (type === 'countries') src = DATA.pays;
+
+  tableData = src;
+  sortCol = null;
+  renderTable(tableData);
+}
+
+function renderTable(data) {
+  const isPages = currentTable === 'pages';
+  const labelHead = currentTable === 'queries' ? 'Requête' : currentTable === 'pages' ? 'Page' : 'Pays';
+  const maxClics = data.length ? Math.max(...data.map(d => d.clics)) : 1;
+
+  document.getElementById('tableHead').innerHTML = `
+    <tr>
+      <th style="width:40px">#</th>
+      <th onclick="sortTable('label')">${labelHead} ${sortIcon('label')}</th>
+      <th onclick="sortTable('clics')" style="text-align:right">Clics ${sortIcon('clics')}</th>
+      <th onclick="sortTable('impressions')" style="text-align:right">Impressions ${sortIcon('impressions')}</th>
+      <th onclick="sortTable('ctr')" style="text-align:right">CTR ${sortIcon('ctr')}</th>
+      <th onclick="sortTable('position')" style="text-align:right">Position ${sortIcon('position')}</th>
+    </tr>
+  `;
+
+  document.getElementById('tableBody').innerHTML = data.slice(0, 100).map((row, i) => {
+    const label = isPages ? row.label.replace(/https?:\/\/[^/]+/, '') || '/' : row.label;
+    const ctr = (row.ctr * 100).toFixed(1);
+    const ctrClass = row.ctr > 0.1 ? 'ctr-high' : row.ctr > 0.02 ? 'ctr-mid' : 'ctr-low';
+    const pos = row.position;
+    const posClass = pos <= 1.5 ? 'pos-1' : pos <= 3 ? 'pos-top3' : pos <= 10 ? 'pos-top10' : 'pos-low';
+    const barW = Math.max(2, Math.round((row.clics / maxClics) * 80));
+
+    return `
+      <tr>
+        <td><span class="rank-num">${i+1}</span></td>
+        <td style="max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${row.label}">${label}</td>
+        <td style="text-align:right">
+          <div class="bar-cell" style="justify-content:flex-end">
+            <span style="font-weight:600;color:var(--text)">${fmtNum(row.clics)}</span>
+            <div class="mini-bar" style="width:${barW}px"></div>
+          </div>
+        </td>
+        <td style="text-align:right;color:var(--text-muted)">${fmtNum(row.impressions)}</td>
+        <td style="text-align:right"><span class="ctr-pill ${ctrClass}">${ctr}%</span></td>
+        <td style="text-align:right"><span class="pos-badge ${posClass}">${pos.toFixed(1)}</span></td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function sortTable(col) {
+  if (sortCol === col) sortDir *= -1;
+  else { sortCol = col; sortDir = -1; }
+  tableData = [...tableData].sort((a,b) => {
+    const va = a[col], vb = b[col];
+    if (typeof va === 'string') return va.localeCompare(vb) * sortDir;
+    return (va - vb) * sortDir;
+  });
+  renderTable(tableData);
+}
+
+function sortIcon(col) {
+  if (sortCol !== col) return '<span style="opacity:0.3">↕</span>';
+  return sortDir === -1 ? '↓' : '↑';
+}
+
+function filterTable() {
+  const q = document.getElementById('tableSearch').value.toLowerCase();
+  let src = currentTable === 'queries' ? DATA.requetes : currentTable === 'pages' ? DATA.pages : DATA.pays;
+  tableData = q ? src.filter(r => r.label.toLowerCase().includes(q)) : src;
+  sortCol = null;
+  renderTable(tableData);
+}
+
+// ─── UTILS ────────────────────────────────────────────────────────────────────
+function fmtNum(n) {
+  if (n >= 1000000) return (n/1000000).toFixed(1) + 'M';
+  if (n >= 1000) return (n/1000).toFixed(1) + 'k';
+  return Math.round(n).toLocaleString('fr-FR');
+}
+
+// ─── AUTO-LOAD embedded data (INSIGHTS_12MOIS) ────────────────────────────────
+// Pre-populate with the uploaded file data so the dashboard shows immediately
+(function preload() {
+  // Graphique data (365 days)
+  const graphiqueRaw = [
+    ["2025-04-24",142,9403,0.0151,18.8],["2025-04-25",108,8836,0.0122,18.3],["2025-04-26",126,9151,0.0138,18.5],["2025-04-27",137,9563,0.0143,18.9],["2025-04-28",122,10535,0.0116,20.4],["2025-04-29",134,10291,0.013,19.7],["2025-04-30",140,9725,0.0144,19.3],["2025-05-01",148,9458,0.0156,18.2],["2025-05-02",110,9786,0.0112,18.7],["2025-05-03",132,10195,0.0129,18.0],["2025-05-04",147,10614,0.0138,18.9],["2025-05-05",130,9994,0.013,18.5],["2025-05-06",125,9948,0.0126,19.5],["2025-05-07",122,9563,0.0128,19.7],["2025-05-08",127,9924,0.0128,19.2],["2025-05-09",99,9645,0.0103,18.2],["2025-05-10",121,9018,0.0134,18.7],["2025-05-11",133,9535,0.0139,19.2],["2025-05-12",108,8722,0.0124,20.2],["2025-05-13",119,8979,0.0133,21.5],["2025-05-14",114,9204,0.0124,21.5],["2025-05-15",93,7801,0.0119,19.8],["2025-05-16",93,7625,0.0122,19.8],["2025-05-17",102,7680,0.0133,19.4],["2025-05-18",129,8558,0.0151,20.5],["2025-05-19",131,8901,0.0147,20.9],["2025-05-20",97,8004,0.0121,19.6],["2025-05-21",105,8449,0.0124,20.5],["2025-05-22",101,8534,0.0118,21.5],["2025-05-23",116,8506,0.0136,19.7],["2025-05-24",101,9005,0.0112,20.0],["2025-05-25",102,9119,0.0112,19.5],["2025-05-26",122,9086,0.0134,19.0],["2025-05-27",124,9208,0.0135,20.0],["2025-05-28",121,9127,0.0133,19.8],["2025-05-29",132,9756,0.0135,20.7],["2025-05-30",113,9402,0.012,19.2],["2025-05-31",110,9146,0.012,19.8],["2025-06-01",118,9178,0.0129,19.5],["2025-06-02",115,9218,0.0125,19.1],["2025-06-03",105,9835,0.0107,20.8],["2025-06-04",128,10518,0.0122,20.8],["2025-06-05",111,9144,0.0121,20.8],["2025-06-06",85,8647,0.0098,22.1],["2025-06-07",108,10088,0.0107,21.8],["2025-06-08",132,12475,0.0106,26.3],["2025-06-09",112,14260,0.0079,24.9],["2025-06-10",106,9843,0.0108,20.1],["2025-06-11",91,9577,0.0095,20.2],["2025-06-12",95,9269,0.0102,19.6],["2025-06-13",85,8579,0.0099,19.7],["2025-06-14",92,9052,0.0102,21.3],["2025-06-15",101,8632,0.0117,20.2],["2025-06-16",95,9360,0.0101,20.7],["2025-06-17",106,9399,0.0113,18.8],["2025-06-18",134,10529,0.0127,20.0],["2025-06-19",110,10234,0.0107,20.4],["2025-06-20",105,9421,0.0111,21.3],["2025-06-21",89,8575,0.0104,21.8],["2025-06-22",94,8542,0.011,20.2],["2025-06-23",123,8868,0.0139,20.0],["2025-06-24",104,8764,0.0119,19.8],["2025-06-25",94,8637,0.0109,19.0],["2025-06-26",97,8909,0.0109,19.9],["2025-06-27",103,8709,0.0118,21.5],["2025-06-28",103,8576,0.012,20.9],["2025-06-29",95,8422,0.0113,20.1],["2025-06-30",88,9359,0.0094,20.9],["2025-07-01",99,8856,0.0112,20.5],["2025-07-02",98,9746,0.0101,20.8],["2025-07-03",97,9153,0.0106,20.1],["2025-07-04",103,9406,0.011,21.7],["2025-07-05",110,9436,0.0117,20.1],["2025-07-06",112,9379,0.0119,21.1],["2025-07-07",105,9381,0.0112,19.5],["2025-07-08",89,9542,0.0093,20.3],["2025-07-09",113,10119,0.0112,19.8],["2025-07-10",108,10154,0.0106,21.7],["2025-07-11",83,15126,0.0055,28.1],["2025-07-12",130,13268,0.0098,25.3],["2025-07-13",116,9672,0.012,22.7],["2025-07-14",102,9669,0.0105,20.3],["2025-07-15",112,10362,0.0108,22.4],["2025-07-16",113,9541,0.0118,19.5],["2025-07-17",93,9109,0.0102,19.8],["2025-07-18",115,9541,0.0121,20.3],["2025-07-19",112,9768,0.0115,20.9],["2025-07-20",115,9554,0.012,21.0],["2025-07-21",87,10373,0.0084,21.9],["2025-07-22",114,10309,0.0111,22.4],["2025-07-23",104,10613,0.0098,21.2],["2025-07-24",111,10088,0.011,21.3],["2025-07-25",99,9799,0.0101,21.8],["2025-07-26",117,8924,0.0131,21.6],["2025-07-27",119,8922,0.0133,20.7],["2025-07-28",113,9540,0.0118,20.5],["2025-07-29",125,9380,0.0133,19.2],["2025-07-30",102,9023,0.0113,19.9],["2025-07-31",89,9286,0.0096,19.3],["2025-08-01",89,9110,0.0098,20.4],["2025-08-02",108,8810,0.0123,19.3],["2025-08-03",117,8968,0.013,20.0],["2025-08-04",106,10025,0.0106,20.0],["2025-08-05",105,9804,0.0107,21.2],["2025-08-06",114,10216,0.0112,20.4],["2025-08-07",121,9919,0.0122,20.9],["2025-08-08",100,10070,0.0099,19.9],["2025-08-09",123,9662,0.0127,20.7],["2025-08-10",114,9054,0.0126,21.5],["2025-08-11",97,14858,0.0065,29.0],["2025-08-12",92,9709,0.0095,21.4],["2025-08-13",90,9282,0.0097,21.9],["2025-08-14",95,9382,0.0101,21.7],["2025-08-15",108,8831,0.0122,20.2],["2025-08-16",80,8762,0.0091,21.0],["2025-08-17",89,8283,0.0107,20.6],["2025-08-18",89,8632,0.0103,20.9],["2025-08-19",101,9366,0.0108,21.1],["2025-08-20",102,9496,0.0107,21.0],["2025-08-21",101,9469,0.0107,21.1],["2025-08-22",104,9395,0.0111,21.1],["2025-08-23",111,9712,0.0114,22.2],["2025-08-24",111,9375,0.0118,21.3],["2025-08-25",98,9434,0.0104,19.6],["2025-08-26",90,9835,0.0092,20.7],["2025-08-27",109,10084,0.0108,20.6],["2025-08-28",106,10003,0.0106,21.2],["2025-08-29",95,9415,0.0101,20.5],["2025-08-30",93,9550,0.0097,20.5],["2025-08-31",98,9040,0.0108,21.2],["2025-09-01",83,8803,0.0094,21.8],["2025-09-02",95,8420,0.0113,20.6],["2025-09-03",84,8466,0.0099,21.8],["2025-09-04",64,8195,0.0078,23.1],["2025-09-05",70,8283,0.0085,23.1],["2025-09-06",94,8463,0.0111,22.0],["2025-09-07",90,8024,0.0112,21.1],["2025-09-08",69,8073,0.0085,21.5],["2025-09-09",74,8081,0.0092,20.9],["2025-09-10",94,7966,0.0118,17.6],["2025-09-11",75,7251,0.0103,18.4],["2025-09-12",65,6177,0.0105,14.2],["2025-09-13",90,5824,0.0155,10.5],["2025-09-14",83,5931,0.014,12.1],["2025-09-15",91,5648,0.0161,12.3],["2025-09-16",78,5433,0.0144,11.2],["2025-09-17",77,5870,0.0131,11.9]
+  ];
+
+  DATA.graphique = graphiqueRaw.map(r => ({ date: r[0], clics: r[1], impressions: r[2], ctr: r[3], position: r[4] }));
+
+  DATA.requetes = [
+    {label:"ethni beauty market",clics:999,impressions:1856,ctr:0.5383,position:1.37},{label:"as i am maroc",clics:214,impressions:1061,ctr:0.2017,position:4.27},{label:"olivea",clics:159,impressions:2698,ctr:0.0589,position:7.42},{label:"makari",clics:157,impressions:16100,ctr:0.0098,position:10.49},{label:"umberto giannini maroc",clics:139,impressions:558,ctr:0.2491,position:3.44},{label:"wardi cosmetics",clics:137,impressions:607,ctr:0.2257,position:2.31},{label:"lauraaluve",clics:131,impressions:1050,ctr:0.1248,position:3.27},{label:"laura luve",clics:128,impressions:999,ctr:0.1281,position:3.31},{label:"lauraaluve hair",clics:115,impressions:615,ctr:0.187,position:3.32},{label:"shea moisture tunisie",clics:109,impressions:727,ctr:0.1499,position:3.89},{label:"nubian heritage",clics:102,impressions:2118,ctr:0.0482,position:21.95},{label:"beauty market",clics:92,impressions:305744,ctr:0.0003,position:7.16},{label:"alikay naturals",clics:91,impressions:1368,ctr:0.0665,position:11.66},{label:"as i am leave in conditioner maroc",clics:88,impressions:410,ctr:0.2146,position:4.22},{label:"lauraluve",clics:79,impressions:440,ctr:0.1795,position:3.11},{label:"crazy color maroc",clics:75,impressions:243,ctr:0.3086,position:3.19},{label:"eatara paris",clics:71,impressions:334,ctr:0.2126,position:4.66},{label:"recourbe cils shu uemura",clics:67,impressions:1829,ctr:0.0366,position:5.52},{label:"eatara",clics:66,impressions:670,ctr:0.0985,position:4.34},{label:"ethnobeauty",clics:60,impressions:642,ctr:0.0935,position:5.58},{label:"laura luv",clics:60,impressions:445,ctr:0.1348,position:4.1},{label:"brazilian secret hair",clics:58,impressions:3034,ctr:0.0191,position:4.8},{label:"savon vaseline",clics:54,impressions:3733,ctr:0.0145,position:4.74},{label:"carol's daughter",clics:52,impressions:4136,ctr:0.0126,position:12.7},{label:"indian hemp hair bienfaits",clics:47,impressions:801,ctr:0.0587,position:3.18},{label:"poudre exfoliante sephora",clics:46,impressions:753,ctr:0.0611,position:3.29},{label:"tree hut france",clics:46,impressions:703,ctr:0.0654,position:4.27},{label:"hivewash",clics:43,impressions:839,ctr:0.0513,position:1.94},{label:"rizos curls",clics:41,impressions:2869,ctr:0.0143,position:9.58},{label:"lauraaluve complément alimentaire",clics:41,impressions:193,ctr:0.2124,position:2.25}
+  ];
+
+  DATA.pages = [
+    {label:"https://www.ethnibeautymarket.com/",clics:2071,impressions:340896,ctr:0.0061,position:7.26},{label:"https://www.ethnibeautymarket.com/pages/laura-sims",clics:723,impressions:5320,ctr:0.1359,position:3.5},{label:"https://www.ethnibeautymarket.com/collections/lauraa-luve",clics:540,impressions:5947,ctr:0.0908,position:5.45},{label:"https://www.ethnibeautymarket.com/collections/as-i-am",clics:528,impressions:4129,ctr:0.1279,position:10.19},{label:"https://www.ethnibeautymarket.com/collections/brazilian-secrets-hair-1",clics:481,impressions:29289,ctr:0.0164,position:15.72},{label:"https://www.ethnibeautymarket.com/products/kuza-secret-dafrique",clics:460,impressions:24845,ctr:0.0185,position:8.37},{label:"https://www.ethnibeautymarket.com/products/vaseline-savon-barre-75-g",clics:367,impressions:18664,ctr:0.0197,position:5.55},{label:"https://www.ethnibeautymarket.com/collections/olivea",clics:356,impressions:6540,ctr:0.0544,position:6.71},{label:"https://www.ethnibeautymarket.com/collections/shea-moisture",clics:329,impressions:5433,ctr:0.0606,position:12.03},{label:"https://www.ethnibeautymarket.com/collections/makari",clics:324,impressions:33934,ctr:0.0095,position:10.61},{label:"https://www.ethnibeautymarket.com/collections/tree-hut-new",clics:319,impressions:28163,ctr:0.0113,position:8.78},{label:"https://www.ethnibeautymarket.com/collections/wardi-cosmetics",clics:285,impressions:2019,ctr:0.1412,position:3.48},{label:"https://www.ethnibeautymarket.com/blogs/astuces-beaute/peaux-noires-soleil",clics:259,impressions:30759,ctr:0.0084,position:11.16},{label:"https://www.ethnibeautymarket.com/products/dark-and-lovely-creme-colorante",clics:254,impressions:23480,ctr:0.0108,position:11.42},{label:"https://www.ethnibeautymarket.com/collections/umberto-giannini",clics:248,impressions:9418,ctr:0.0263,position:10.68},{label:"https://www.ethnibeautymarket.com/products/loreal-elvive-extraordinary-oil",clics:247,impressions:33606,ctr:0.0073,position:7.8},{label:"https://www.ethnibeautymarket.com/products/shu-uemura-recourbe-cils",clics:232,impressions:8747,ctr:0.0265,position:6.06},{label:"https://www.ethnibeautymarket.com/products/musc-intime-deodorant-solide",clics:222,impressions:25466,ctr:0.0087,position:15.79},{label:"https://www.ethnibeautymarket.com/products/yari-fast-pouss-plus-100ml",clics:180,impressions:4468,ctr:0.0403,position:7.02},{label:"https://www.ethnibeautymarket.com/products/kojie-san-savon-eclaircissant-65g",clics:179,impressions:45252,ctr:0.004,position:9.38}
+  ];
+
+  DATA.pays = [
+    {label:"France",clics:22733,impressions:1525158,ctr:0.0149,position:15.63},{label:"Maroc",clics:2848,impressions:400828,ctr:0.0071,position:7.76},{label:"Tunisie",clics:1251,impressions:38488,ctr:0.0325,position:8.9},{label:"Belgique",clics:998,impressions:58381,ctr:0.0171,position:15.28},{label:"Réunion",clics:721,impressions:22308,ctr:0.0323,position:9.2},{label:"Martinique",clics:686,impressions:21104,ctr:0.0325,position:7.75},{label:"Guadeloupe",clics:655,impressions:17635,ctr:0.0371,position:7.65},{label:"Algérie",clics:629,impressions:37205,ctr:0.0169,position:9.7},{label:"Côte d'Ivoire",clics:532,impressions:37761,ctr:0.0141,position:7.52},{label:"Cameroun",clics:456,impressions:37639,ctr:0.0121,position:8.8},{label:"Sénégal",clics:422,impressions:27650,ctr:0.0153,position:9.19},{label:"Suisse",clics:402,impressions:19084,ctr:0.0211,position:12.61},{label:"RD Congo",clics:363,impressions:36831,ctr:0.0099,position:6.48},{label:"Madagascar",clics:285,impressions:9418,ctr:0.0303,position:7.35},{label:"Canada",clics:253,impressions:44460,ctr:0.0057,position:27.96},{label:"Haïti",clics:217,impressions:17590,ctr:0.0123,position:7.1},{label:"Bénin",clics:185,impressions:15625,ctr:0.0118,position:6.17},{label:"Allemagne",clics:158,impressions:14641,ctr:0.0108,position:26.88},{label:"Espagne",clics:157,impressions:11453,ctr:0.0137,position:22.1},{label:"Congo-Brazzaville",clics:156,impressions:10886,ctr:0.0143,position:6.52}
+  ];
+
+  DATA.appareils = [
+    {label:"Mobile",clics:29291,impressions:1920810,ctr:0.0152,position:10.91},{label:"Ordinateur",clics:6339,impressions:928768,ctr:0.0068,position:26.66},{label:"Tablette",clics:414,impressions:22230,ctr:0.0186,position:8.39}
+  ];
+
+  DATA.apparence = [
+    {label:"Extraits de produits",clics:19619,impressions:1447318,ctr:0.0136,position:17.01},{label:"Fiches de marchand",clics:3013,impressions:92445,ctr:0.0326,position:6.99},{label:"Extrait d'avis",clics:1,impressions:37,ctr:0.027,position:8.68}
+  ];
+
+  document.getElementById('dataDateLabel').textContent = 'INSIGHTS_12MOIS.xlsx · Avr 2025 → Sep 2025';
+  document.getElementById('dashboardContent').style.display = 'block';
+  renderAll();
+})();
+</script>
+</body>
+</html>
